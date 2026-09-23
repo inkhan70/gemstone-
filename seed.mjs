@@ -1,8 +1,7 @@
 import mongoose from 'mongoose';
 
-const user = 'agentAdmin';
-const pass = encodeURIComponent('GildedPass2026');
-const MONGODB_URI = `mongodb+srv://${user}:${pass}@cluster0.7zyrhjt.mongodb.net/gilded-sanctuary?retryWrites=true&w=majority&appName=gemsdb`;
+const MONGODB_URI = process.env.MONGODB_URI;
+if (!MONGODB_URI) throw new Error('MONGODB_URI is required to seed the database');
 
 // ── Schemas ──────────────────────────────────────────────
 const UserSchema = new mongoose.Schema({

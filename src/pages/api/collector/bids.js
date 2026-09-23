@@ -21,16 +21,20 @@ export default async function handler(req, res) {
 
   if (req.method === 'POST') {
     const { gemstoneId, amount } = req.body;
-    const gem = await Gemstone.findById(gemstoneId);
-    if (!gem || gem.status !== 'live') return res.status(400).json({ message: 'Auction is not active' });
-    if (amount <= (gem.currentBid || 0)) return res.status(400).json({ message: 'Bid must exceed current bid' });
+    const bidAmount = Number(amount);
+    if (!gemstoneId || !Number.isFinite(bidAmount) || bidAmount <= 0) {
+      return res.status(400).json({ message: 'A valid gemstone and positive bid amount are required' });
+    }
 
-    await Bid.create({ gemstone: gemstoneId, bidder: user._id, amount });
-    gem.currentBid = amount;
-    gem.bids.push({ bidder: user._id, amount });
-    await gem.save();
+    const gem = await Gemstone.findOneAndUpdate(
+      { _id: gemstoneId, status: 'live', currentBid: { $lt: bidAmount } },
+      { $set: { currentBid: bidAmount }, $push: { bids: { bidder: user._id, amount: bidAmount } } },
+      { new: true }
+    );
+    if (!gem) return res.status(400).json({ message: 'Auction is inactive or bid is not high enough' });
 
-    return res.status(201).json({ message: 'Bid placed', currentBid: amount });
+    await Bid.create({ gemstone: gemstoneId, bidder: user._id, amount: bidAmount });
+    return res.status(201).json({ message: 'Bid placed', currentBid: bidAmount });
   }
 
   return res.status(405).json({ message: 'Method not allowed' });

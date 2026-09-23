@@ -1,5 +1,7 @@
 import connectDB from '../../lib/mongodb';
-import { Gemstone } from '../../lib/models';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from './auth/[...nextauth]';
+import { Gemstone, User } from '../../lib/models';
 
 export default async function handler(req, res) {
   await connectDB();
@@ -27,11 +29,18 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'POST') {
+    const session = await getServerSession(req, res, authOptions);
+    if (!session || !['seller', 'admin'].includes(session.user?.role)) {
+      return res.status(403).json({ message: 'Seller or admin access required' });
+    }
     try {
-      const gemstone = await Gemstone.create(req.body);
+      const user = await User.findById(session.user.id).lean();
+      const allowedFields = ['title', 'description', 'carats', 'color', 'clarity', 'cut', 'origin', 'certification', 'gemstoneDetails', 'images', 'price', 'startingBid', 'currentBid', 'reservePrice', 'category', 'isAuctionItem', 'status', 'auctionStart', 'auctionEnd'];
+      const data = Object.fromEntries(allowedFields.filter((field) => req.body[field] !== undefined).map((field) => [field, req.body[field]]));
+      const gemstone = await Gemstone.create({ ...data, seller: user?._id });
       return res.status(201).json(gemstone);
     } catch (error) {
-      return res.status(500).json({ message: error.message });
+      return res.status(400).json({ message: 'Invalid gemstone payload' });
     }
   }
 

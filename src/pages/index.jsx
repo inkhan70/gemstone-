@@ -69,7 +69,7 @@ export default function Home() {
       <section
         ref={heroRef}
         className="relative min-h-screen flex items-center justify-center overflow-hidden"
-        style={{ background: 'radial-gradient(ellipse at center, #2a2a1a 0%, #0d0d0b 70%)' }}
+        style={{ backgroundImage: "linear-gradient(90deg, rgba(13,13,11,0.96) 0%, rgba(13,13,11,0.78) 42%, rgba(13,13,11,0.34) 100%), url('/gilded-hero.png')", backgroundPosition: 'center', backgroundSize: 'cover' }}
       >
         <div className="absolute inset-0 overflow-hidden">
           {[...Array(30)].map((_, i) => (
