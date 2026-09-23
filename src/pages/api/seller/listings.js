@@ -25,6 +25,11 @@ export default async function handler(req, res) {
     if (!listingCheck.allowed) return res.status(403).json({ message: listingCheck.reason });
 
     const { isAuctionItem, images = [], ...rest } = req.body;
+    const allowedFields = ['title', 'description', 'carats', 'color', 'clarity', 'cut', 'origin', 'certification', 'gemstoneDetails', 'price', 'startingBid', 'reservePrice', 'category', 'auctionStart', 'auctionEnd'];
+    const listingData = Object.fromEntries(allowedFields.filter((field) => rest[field] !== undefined).map((field) => [field, rest[field]]));
+    if (!listingData.title || !Number.isFinite(Number(listingData.carats)) || !listingData.color || !listingData.clarity) {
+      return res.status(400).json({ message: 'Title, carats, color, and clarity are required' });
+    }
 
     // If auction, check concurrent live limit
     if (isAuctionItem) {
@@ -37,7 +42,7 @@ export default async function handler(req, res) {
     const isPaidSellerItem = tier !== 'free';
 
     const gemstone = await Gemstone.create({
-      ...rest,
+      ...listingData,
       seller: user._id,
       images: safeImages,
       isAuctionItem: isAuctionItem || false,

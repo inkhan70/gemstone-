@@ -55,7 +55,7 @@ export default function Navbar({ onAuthClick }) {
             ) : (
               <button onClick={onAuthClick} className="btn-gold px-5 py-2 rounded text-xs">SIGN IN</button>
             )}
-            <button className="md:hidden text-luxury-cream/60 ml-2" onClick={() => setMenuOpen(m => !m)}>☰</button>
+            <button aria-label={menuOpen ? 'Close navigation menu' : 'Open navigation menu'} aria-expanded={menuOpen} className="md:hidden text-luxury-cream/60 ml-2" onClick={() => setMenuOpen(m => !m)}>{menuOpen ? '×' : '☰'}</button>
           </div>
         </div>
       </div>
